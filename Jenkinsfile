@@ -1,10 +1,12 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker-build-agent'
+    }
     parameters {
         string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'rasberry pi input to raw topic')
     }
     environment {
-        registry = "localhost:5000/${params.appname}"
+        registry = "registry:5000/${params.appname}"
         dockerImage = ''
     }
     stages {
