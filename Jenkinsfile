@@ -6,7 +6,7 @@ pipeline {
         string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'rasberry pi input to raw topic')
     }
     environment {
-        registry = "registry:5000/${params.appname}"
+        registry = "192.168.1.59:5000/${params.appname}"
         dockerImage = ''
     }
     stages {
