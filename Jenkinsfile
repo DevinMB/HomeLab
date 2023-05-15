@@ -27,7 +27,12 @@ pipeline {
         stage('Deploying image') {
             steps{
                 script {
-                    sh "docker service update --image ${registry}:${BUILD_NUMBER} ${params.appname}"
+                    withCredentials([usernamePassword(credentialsId: 'portainer-creds', passwordVariable: 'password', usernameVariable: 'username')]) {
+                        sh '''
+                        token=$(curl -s -X POST "http://portainer:9000/api/auth" -H "accept: application/json" -H "Content-Type: application/json" -d "{\\\"username\\\":\\\"$username\\\",\\\"password\\\":\\\"$password\\\"}" | jq -r .jwt)
+                        curl -X POST "http://portainer.example.com/api/endpoints/1/docker/services/create" -H "accept: application/json" -H "Authorization: Bearer $token" -d '{...}'
+                        '''
+                    }
                 }
             }
         }
