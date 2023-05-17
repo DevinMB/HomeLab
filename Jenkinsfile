@@ -28,7 +28,7 @@ pipeline {
             steps{
                 script {
                     withCredentials([usernamePassword(credentialsId: 'portainer-creds', passwordVariable: 'password', usernameVariable: 'username')]) {
-                        def response = sh(script: "curl -s -X POST 'http://portainer:9000/api/auth' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\":\"$username\",\"password\":\"$password\"}'", returnStdout: true).trim()
+                        def response = sh(script: "curl -s -X POST 'http://portainer:9000/api/auth' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\":\"rangerBUTTS\",\"password\":\"W@ffles02\"}'", returnStdout: true).trim()
                         def token = readJSON text: response
                         def jwt = token.jwt
                         println response
