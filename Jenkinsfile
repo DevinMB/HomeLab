@@ -28,13 +28,11 @@ pipeline {
             steps{
                 script {
                     withCredentials([usernamePassword(credentialsId: 'portainer-creds', passwordVariable: 'password', usernameVariable: 'username')]) {
-                        def response = sh(script: "curl -s -X POST 'http://portainer:9000/api/auth' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\":\"rangerBUTTS\",\"password\":\"W@ffles02\"}'", returnStdout: true).trim()
+                        def response = sh(script: "curl -s -X POST 'http://portainer:9000/api/auth' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\":\"$username\",\"password\":\"$password\"}'", returnStdout: true).trim()
                         def token = readJSON text: response
                         def jwt = token.jwt
-                        println response
                         // Now you can use the jwt token in subsequent curl command
-                        sh "curl -X POST 'http://portainer:9000/api/endpoints/1/docker/services/create' -H 'accept: application/json' -H 'Authorization: Bearer $jwt' -d '{\"Name\": \"my-service\", \"TaskTemplate\": {\"ContainerSpec\": {\"Image\": \"my-docker-image\"}}, \"Networks\": [{\"Target\": \"kafka_flappysnetwork\"}]}'"
-
+                        sh "curl -X POST 'http://portainer:9000/api/endpoints/1/docker/services/create' -H 'accept: application/json' -H 'Authorization: Bearer $jwt' -d '{...}'"
                     }
                 }
             }
