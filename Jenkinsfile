@@ -32,7 +32,7 @@ pipeline {
                         def token = readJSON text: response
                         def jwt = token.jwt
                         // Now you can use the jwt token in subsequent curl command
-                        sh "curl -X POST 'http://portainer:9000/api/endpoints/1/docker/services/create' -H 'accept: application/json' -H 'Authorization: Bearer $jwt' -d '{...}'"
+                        sh "curl -X POST 'http://portainer:9000/api/endpoints/1/docker/services/create' -H 'accept: application/json' -H 'Authorization: Bearer $jwt' -d '{\"username\":\"$username\",\"password\":\"$password\"}'"
                     }
                 }
             }
