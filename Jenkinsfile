@@ -8,7 +8,7 @@ pipeline {
   environment {
       registry = "192.168.1.59:5000/${params.appname}"
       dockerImage = ''
-      IMAGE_NAME = '192.168.1.59:5000/rpi-raw-input:${BUILD_NUMBER}'
+//       imageName = '192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}'
       SERVICE_NAME = 'MyService'
       CONTAINER_PORT = '8080'
       HOST_PORT = '8080'
@@ -20,6 +20,7 @@ pipeline {
       steps {
         script {
           dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          imageName = '192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}'
         }
       }
     }
@@ -45,7 +46,7 @@ pipeline {
               "Name": "${SERVICE_NAME}",
               "TaskTemplate": {
                 "ContainerSpec": {
-                  "Image": "${IMAGE_NAME}"
+                  "Image": "${imageName}"
                 },
                 "RestartPolicy": {
                   "Condition": "on-failure",
