@@ -12,6 +12,7 @@ pipeline {
       SERVICE_NAME = "${params.appname}"
       CONTAINER_PORT = '8080'
       CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
+      bearerToken = ""
   }
 
   stages {
@@ -38,7 +39,7 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
             def jsonToken = readJSON text: token
-            def bearerToken = jsonToken.jwt
+            bearerToken = jsonToken.jwt
 
             def payload = """
             {
