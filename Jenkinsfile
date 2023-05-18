@@ -3,7 +3,7 @@ pipeline {
     label 'docker-build-agent'
   }
   parameters {
-    string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'rasberry pi input to raw topic')
+    string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'raspberry pi input to raw topic')
   }
   environment {
     registry = "192.168.1.59:5000/${params.appname}"
@@ -52,7 +52,7 @@ pipeline {
             writer.close()
 
             // Read the response
-            def authResponse = new JsonSlurperClassic().parseText(connection.content.text)
+            def authResponse = new groovy.json.JsonSlurperClassic().parseText(connection.content.text)
             def bearerToken = authResponse.jwt
 
             // Create the service spec JSON
@@ -93,7 +93,7 @@ pipeline {
             connection.setRequestProperty('Authorization', "Bearer ${bearerToken}")
 
             // Parse the response JSON
-            def services = new JsonSlurperClassic().parseText(connection.content.text)
+            def services = new groovy.json.JsonSlurperClassic().parseText(connection.content.text)
             def oldService = services.find { it.Spec.Name == SERVICE_NAME }
 
             if (oldService) {
@@ -153,7 +153,7 @@ pipeline {
           connection.setRequestProperty('Authorization', "Bearer ${bearerToken}")
 
           // Parse the response JSON
-          def serviceInfo = new JsonSlurperClassic().parseText(connection.content.text)
+          def serviceInfo = new groovy.json.JsonSlurperClassic().parseText(connection.content.text)
 
           // Check the service state
           if (serviceInfo.UpdateStatus.State != "completed") {
