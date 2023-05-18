@@ -35,6 +35,7 @@ pipeline {
     stage('Deploy Image') {
       steps {
         script {
+
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
             def jsonToken = readJSON text: token
@@ -71,6 +72,28 @@ pipeline {
             }
             """
 
+          // Delete the old service if it exists
+          def oldServiceId = sh(script: """
+            curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H 'Authorization: Bearer ${bearerToken}' \
+              | jq -r '.[] | select(.Spec.Name == "${SERVICE_NAME}") | .ID'
+          """, returnStdout: true).trim()
+
+          if (oldServiceId) {
+            sh """
+              curl -s -X DELETE http://portainer:9000/api/endpoints/2/docker/services/${oldServiceId} \
+                -H 'accept: application/json' \
+                -H 'Content-Type: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}'
+            """
+
+            // Wait for the service to be deleted
+            sleep 60
+          }
+
+          // Deploy the new service
             sh """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
                 -H 'accept: application/json' \
