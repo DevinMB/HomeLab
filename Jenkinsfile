@@ -52,7 +52,7 @@ pipeline {
             writer.close()
 
             // Read the response
-            def authResponse = new JsonSlurper().parseText(connection.content.text)
+            def authResponse = new JsonSlurperSafe().parseText(connection.content.text)
             def bearerToken = authResponse.jwt
 
             // Create the service spec JSON
@@ -93,7 +93,7 @@ pipeline {
             connection.setRequestProperty('Authorization', "Bearer ${bearerToken}")
 
             // Parse the response JSON
-            def services = new JsonSlurper().parseText(connection.content.text)
+            def services = new JsonSlurperSafe().parseText(connection.content.text)
             def oldService = services.find { it.Spec.Name == SERVICE_NAME }
 
             if (oldService) {
@@ -153,7 +153,7 @@ pipeline {
           connection.setRequestProperty('Authorization', "Bearer ${bearerToken}")
 
           // Parse the response JSON
-          def serviceInfo = new JsonSlurper().parseText(connection.content.text)
+          def serviceInfo = new JsonSlurperSafe().parseText(connection.content.text)
 
           // Check the service state
           if (serviceInfo.UpdateStatus.State != "completed") {
