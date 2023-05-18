@@ -82,5 +82,29 @@ pipeline {
         }
       }
     }
+    stage('Check Service Health') {
+      steps {
+        script {
+          // Wait for a while before checking the service
+          sleep 60  // adjust this to match your startup time
+
+          // Call Docker API to get the service info
+          def serviceInfo = sh(script: """
+            curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME} \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H 'Authorization: Bearer ${bearerToken}'
+          """, returnStdout: true).trim()
+
+          def jsonServiceInfo = readJSON text: serviceInfo
+
+          // Check the service state
+          if (jsonServiceInfo.UpdateStatus.State != "completed") {
+            error("Service is not healthy")
+          }
+        }
+      }
+    }
+
   }
 }
