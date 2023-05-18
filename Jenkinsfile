@@ -74,6 +74,7 @@ pipeline {
             sh """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
                 -H 'accept: application/json' \
+                -H 'Content-Type: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '${payload}'
             """
