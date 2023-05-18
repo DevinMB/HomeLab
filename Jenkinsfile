@@ -8,8 +8,8 @@ pipeline {
   environment {
       registry = "192.168.1.59:5000/${params.appname}"
       dockerImage = ''
-//       imageName = '192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}'
-      SERVICE_NAME = 'MyService'
+      imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
+      SERVICE_NAME = "${params.appname}"
       CONTAINER_PORT = '8080'
       HOST_PORT = '8080'
       CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
@@ -20,7 +20,6 @@ pipeline {
       steps {
         script {
           dockerImage = docker.build registry + ":$BUILD_NUMBER"
-          imageName = '192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}'
         }
       }
     }
@@ -73,7 +72,7 @@ pipeline {
             """
 
             sh """
-              curl -X POST http://portainer:9000/api/endpoints/1/docker/services/create \
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '${payload}'
