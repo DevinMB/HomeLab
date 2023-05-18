@@ -11,7 +11,6 @@ pipeline {
       imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
       SERVICE_NAME = "${params.appname}"
       CONTAINER_PORT = '8080'
-      HOST_PORT = '8080'
       CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
   }
 
@@ -65,7 +64,6 @@ pipeline {
                   {
                     "Protocol": "tcp",
                     "TargetPort": ${CONTAINER_PORT},
-                    "PublishedPort": ${HOST_PORT}
                   }
                 ]
               }
