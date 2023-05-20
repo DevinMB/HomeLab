@@ -38,7 +38,7 @@ pipeline {
         script {
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
-            def jsonToken = readJSON text: token
+            def jsonToken = readJSON text: token 
             bearerToken = jsonToken.jwt
             
             def containersJson = sh(script: """
@@ -46,7 +46,7 @@ pipeline {
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
-            def containers = new groovy.json.JsonSlurper().parseText(containersJson)
+            def containers = new groovy.json.JsonSlurper().parseText(containersJson) as HashMap
             echo containers.toString() // add this line to inspect the structure of containers
 
             def container = containers.find { it.Image == imageName }
@@ -74,7 +74,7 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ { "HostPort": "${CONTAINER_PORT}" } ] } } }'
             """, returnStdout: true).trim()
-            def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson)
+            def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson) as HashMap
             container_id = createContainer.Id
 
             sh """
@@ -100,7 +100,7 @@ pipeline {
               -H 'Authorization: Bearer ${bearerToken}'
           """, returnStdout: true).trim()
 
-          def jsonServiceInfo = new groovy.json.JsonSlurper().parseText(serviceInfo)
+          def jsonServiceInfo = new groovy.json.JsonSlurper().parseText(serviceInfo) as HashMap
 
           // Check the service state
           if (jsonServiceInfo.State.Status != "running") {
