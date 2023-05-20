@@ -42,7 +42,7 @@ pipeline {
             bearerToken = jsonToken.jwt
             
             def containersJson = sh(script: """
-              curl -s -X GET http://portainer:9000/api/endpoints/1/docker/containers/json \
+              curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
