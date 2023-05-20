@@ -54,7 +54,7 @@ pipeline {
 
             if (container_id) {
               sh """
-                curl -X DELETE http://portainer:9000/api/endpoints/1/docker/containers/${container_id} \
+                curl -X DELETE http://portainer:9000/api/endpoints/2/docker/containers/${container_id} \
                   -H 'accept: application/json' \
                   -H 'Authorization: Bearer ${bearerToken}'
               """
@@ -69,7 +69,7 @@ pipeline {
         script {
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             def createContainerJson = sh(script: """
-              curl -X POST http://portainer:9000/api/endpoints/1/docker/containers/create \
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ { "HostPort": "${CONTAINER_PORT}" } ] } } }'
@@ -78,7 +78,7 @@ pipeline {
             container_id = createContainer.Id
 
             sh """
-              curl -X POST http://portainer:9000/api/endpoints/1/docker/containers/${container_id}/start \
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """
@@ -95,7 +95,7 @@ pipeline {
 
           // Call Docker API to get the service info
           def serviceInfo = sh(script: """
-            curl -s -X GET http://portainer:9000/api/endpoints/1/docker/containers/${container_id}/json \
+            curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/json \
               -H 'accept: application/json' \
               -H 'Authorization: Bearer ${bearerToken}'
           """, returnStdout: true).trim()
