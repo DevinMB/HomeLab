@@ -70,7 +70,7 @@ pipeline {
         script {
           
             def createContainerJson = sh(script: """
-              curl -X POST http://192.168.1.59:9000/api/endpoints/2/docker/containers/create \
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{
@@ -118,22 +118,15 @@ pipeline {
             """
             , returnStdout: true).trim()
 
-//             def containersJson = sh(script: """
-//               curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json \
-//                 -H 'accept: application/json' \
-//                 -H 'Authorization: Bearer ${bearerToken}'
-//             """, returnStdout: true).trim()
-//             def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson) 
-// //             echo containers.toString() // add this line to inspect the structure of containers
+            def createContainer = new groovy.json.JsonSlurperClassic().parseText(createContainerJson) 
+            println createContainer.Id + "Created ID!!!"
+            container_id = createContainer.Id
 
-//             def container = containers.find { it.Image == imageName }
-//             container_id = container?.Id
-
-//             sh """
-//               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${imageName}/start \
-//                 -H 'accept: application/json' \
-//                 -H 'Authorization: Bearer ${bearerToken}'
-//             """
+            sh """
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
+                -H 'accept: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}'
+            """
           
         }
       }
