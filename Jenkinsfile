@@ -75,45 +75,26 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -H 'Content-Type: application/json' \
                 -d '{
-                      "TaskTemplate": {
-                        "ContainerSpec": {
-                          "Name" : "${params.appname}",
-                          "Image": "${imageName}",
-                          "Mounts": [
-                            {
-                              "Source": "web-data",
-                              "Target": "/usr/src/app/data",
-                              "ReadOnly": false,
-                              "Type": "volume"
-                            }
-                          ],
-                          "Labels": {
-                            "com.example.something": "Note-to-self: fill this in"
-                          }
-                        },
-                        "Networks": [
+                      "Name": "${params.appname}",
+                      "Image": "${imageName}",
+                      "HostConfig": {
+                        "Mounts": [
                           {
-                            "Target": "${NETWORK_NAME}"
+                            "Source": "web-data",
+                            "Target": "/usr/src/app/data",
+                            "ReadOnly": false,
+                            "Type": "volume"
                           }
                         ],
                         "RestartPolicy": {
-                          "Condition": "on-failure",
-                          "Delay": 10000000000,
-                          "MaxAttempts": 10
+                          "Name": "on-failure",
+                          "MaximumRetryCount": 10
                         }
                       },
-                      "Mode": {
-                        "Replicated": {
-                          "Replicas": 1
+                      "NetworkingConfig": {
+                        "EndpointsConfig": {
+                          "${NETWORK_NAME}": {}
                         }
-                      },
-                      "EndpointSpec": {
-                        "Ports": [
-                          {
-                            "Protocol": "tcp",
-                            "TargetPort": ${CONTAINER_PORT}
-                          }
-                        ]
                       }
                     }'
             """
