@@ -13,6 +13,7 @@ pipeline {
     CONTAINER_PORT = '8080'
     CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
     bearerToken = ""
+    container_id = ""
   }
 
   stages {
@@ -32,70 +33,49 @@ pipeline {
       }
     }
 
-    stage('Deploy Image') {
+    stage('Retrieve Container ID and Delete Old Container') {
       steps {
         script {
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
-            def jsonToken = readJSON text: token
-            bearerToken = jsonToken.jwt
+            def containersJson = sh(script: """
+              curl -s -X GET http://portainer:9000/api/endpoints/1/docker/containers/json \
+                -H 'accept: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}'
+            """, returnStdout: true).trim()
+            def containers = new groovy.json.JsonSlurper().parseText(containersJson)
+            def container = containers.find { it.Image == imageName }
+            container_id = container?.Id
 
-            def checkService = sh(script: "curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME} -H 'accept: application/json' -H 'Content-Type: application/json' -H 'Authorization: Bearer ${bearerToken}'", returnStdout: true).trim()
-            def jsonCheckService = readJSON text: checkService
-
-             def payload = """
-              {
-                "version": ${BUILD_NUMBER},
-                "Name": "${SERVICE_NAME}",
-                "TaskTemplate": {
-                  "ContainerSpec": {
-                    "Image": "${imageName}"
-                  },
-                  "RestartPolicy": {
-                    "Condition": "on-failure",
-                    "MaxAttempts": 3
-                  },
-                  "Placement": {},
-                  "Resources": {}
-                },
-                "Mode": {
-                  "Replicated": {
-                    "Replicas": 1
-                  }
-                },
-                "EndpointSpec": {
-                  "Ports": [
-                    {
-                      "Protocol": "tcp",
-                      "TargetPort": ${CONTAINER_PORT}
-                    }
-                  ]
-                }
-              }
-              """
-            
-            
-            if (jsonCheckService.message == null) {
-              // Update existing service
+            if (container_id) {
               sh """
-                curl -X POST http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME}/update \
+                curl -X DELETE http://portainer:9000/api/endpoints/1/docker/containers/${container_id} \
                   -H 'accept: application/json' \
-                  -H 'Content-Type: application/json' \
-                  -H 'Authorization: Bearer ${bearerToken}' \
-                  -d '${payload}'
-              """
-            } else {
-              // Create new service
-             
-
-              sh """
-                curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
-                  -H 'accept: application/json' \
-                  -H 'Content-Type: application/json' \
-                  -H 'Authorization: Bearer ${bearerToken}' \
-                  -d '${payload}'
+                  -H 'Authorization: Bearer ${bearerToken}'
               """
             }
+          }
+        }
+      }
+    }
+
+    stage('Create and Start New Container') {
+      steps {
+        script {
+          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            def createContainerJson = sh(script: """
+              curl -X POST http://portainer:9000/api/endpoints/1/docker/containers/create \
+                -H 'accept: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}' \
+                -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ { "HostPort": "${CONTAINER_PORT}" } ] } } }'
+            """, returnStdout: true).trim()
+            def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson)
+            container_id = createContainer.Id
+
+            sh """
+              curl -X POST http://portainer:9000/api/endpoints/1/docker/containers/${container_id}/start \
+                -H 'accept: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}'
+            """
           }
         }
       }
@@ -109,17 +89,15 @@ pipeline {
 
           // Call Docker API to get the service info
           def serviceInfo = sh(script: """
-            curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME} \
+            curl -s -X GET http://portainer:9000/api/endpoints/1/docker/containers/${container_id}/json \
               -H 'accept: application/json' \
-              -H 'Content-Type: application/json' \
               -H 'Authorization: Bearer ${bearerToken}'
           """, returnStdout: true).trim()
 
-          def jsonServiceInfo = readJSON text: serviceInfo
-          
+          def jsonServiceInfo = new groovy.json.JsonSlurper().parseText(serviceInfo)
 
           // Check the service state
-          if (jsonServiceInfo.UpdateStatus.State != "completed") {
+          if (jsonServiceInfo.State.Status != "running") {
             error("Service is not healthy")
           }
         }
