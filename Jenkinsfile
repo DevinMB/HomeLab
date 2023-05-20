@@ -116,6 +116,8 @@ pipeline {
                       }
                     }'
             """
+            , returnStdout: true).trim()
+
             def containersJson = sh(script: """
               curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json \
                 -H 'accept: application/json' \
@@ -126,8 +128,6 @@ pipeline {
 
             def container = containers.find { it.Image == imageName }
             container_id = container?.Id
-            
-            , returnStdout: true).trim()
 
             sh """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
