@@ -36,52 +36,39 @@ pipeline {
       steps {
         script {
 
-          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
-            def jsonToken = readJSON text: token
-            bearerToken = jsonToken.jwt
+         withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
+        def jsonToken = readJSON text: token
+        bearerToken = jsonToken.jwt
 
-            def payload = """
-            {
-              "Name": "${SERVICE_NAME}",
-              "TaskTemplate": {
-                "ContainerSpec": {
-                  "Image": "${imageName}"
-                },
-                "RestartPolicy": {
-                  "Condition": "on-failure",
-                  "MaxAttempts": 3
-                },
-                "Placement": {},
-                "Resources": {}
-              },
-              "Mode": {
-                "Replicated": {
-                  "Replicas": 1
-                }
-              },
-              "EndpointSpec": {
-                "Ports": [
-                  {
-                    "Protocol": "tcp",
-                    "TargetPort": ${CONTAINER_PORT}
+        // Checking if service already exists
+        def serviceCheck = sh(script: """
+          curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME} \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H 'Authorization: Bearer ${bearerToken}'
+        """, returnStdout: true).trim()
 
-                  }
-                ]
-              }
-            }
-            """
+        def jsonServiceCheck = readJSON text: serviceCheck
 
-
-
-
-            sh """
-              curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
-                -H 'accept: application/json' \
-                -H 'Content-Type: application/json' \
-                -H 'Authorization: Bearer ${bearerToken}' \
-                -d '${payload}'
-            """
+        if (jsonServiceCheck.message != 'rpc error: code = NotFound desc = service ${SERVICE_NAME} not found') {
+          // Service exists, update it
+          sh """
+            curl -X POST http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME}/update \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H 'Authorization: Bearer ${bearerToken}' \
+              -d '${payload}'
+          """
+        } else {
+          // Service does not exist, create it
+          sh """
+            curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H 'Authorization: Bearer ${bearerToken}' \
+              -d '${payload}'
+          """
           }
         }
       }
