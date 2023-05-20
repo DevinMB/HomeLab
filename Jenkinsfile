@@ -72,7 +72,7 @@ pipeline {
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
-                -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ { "HostPort": "${CONTAINER_PORT}" } ] } } }'
+                -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ {} ] } } }'
             """, returnStdout: true).trim()
             def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson) 
             container_id = createContainer.Id
@@ -112,3 +112,5 @@ pipeline {
 
   }
 }
+
+
