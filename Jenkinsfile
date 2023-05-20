@@ -43,18 +43,7 @@ pipeline {
             def checkService = sh(script: "curl -s -X GET http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME} -H 'accept: application/json' -H 'Content-Type: application/json' -H 'Authorization: Bearer ${bearerToken}'", returnStdout: true).trim()
             def jsonCheckService = readJSON text: checkService
 
-            if (jsonCheckService.message == null) {
-              // Update existing service
-              sh """
-                curl -X POST http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME}/update \
-                  -H 'accept: application/json' \
-                  -H 'Content-Type: application/json' \
-                  -H 'Authorization: Bearer ${bearerToken}' \
-                  -d '${payload}'
-              """
-            } else {
-              // Create new service
-              def payload = """
+             def payload = """
               {
                 "Name": "${SERVICE_NAME}",
                 "TaskTemplate": {
@@ -83,6 +72,20 @@ pipeline {
                 }
               }
               """
+            
+            
+            if (jsonCheckService.message == null) {
+              // Update existing service
+              sh """
+                curl -X POST http://portainer:9000/api/endpoints/2/docker/services/${SERVICE_NAME}/update \
+                  -H 'accept: application/json' \
+                  -H 'Content-Type: application/json' \
+                  -H 'Authorization: Bearer ${bearerToken}' \
+                  -d '${payload}'
+              """
+            } else {
+              // Create new service
+             
 
               sh """
                 curl -X POST http://portainer:9000/api/endpoints/2/docker/services/create \
@@ -112,7 +115,7 @@ pipeline {
           """, returnStdout: true).trim()
 
           def jsonServiceInfo = readJSON text: serviceInfo
-          println "Service info: ${jsonServiceInfo}"
+          
 
           // Check the service state
           if (jsonServiceInfo.UpdateStatus.State != "completed") {
