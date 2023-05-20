@@ -45,7 +45,7 @@ pipeline {
 
              def payload = """
               {
-                "version": "${BUILD_NUMBER}",
+                "version": ${BUILD_NUMBER},
                 "Name": "${SERVICE_NAME}",
                 "TaskTemplate": {
                   "ContainerSpec": {
