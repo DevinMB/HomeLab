@@ -1,10 +1,3 @@
-def convertLazyMapToHashMap(lazyMap) {
-  lazyMap.collectEntries { key, value ->
-    value = (value instanceof Map) ? convertLazyMapToHashMap(value) : value
-    [(key): value]
-  }
-}
-
 pipeline {
   agent {
     label 'docker-build-agent'
@@ -18,7 +11,7 @@ pipeline {
     imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
     SERVICE_NAME = "${params.appname}"
     CONTAINER_PORT = '8080'
-    CREDENTIALS_ID = 'portainer-creds'
+    CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
     bearerToken = ""
     container_id = ""
   }
@@ -45,7 +38,7 @@ pipeline {
         script {
           withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
-            def jsonToken = readJSON text: token 
+            def jsonToken = readJSON text: token  as HashMap
             bearerToken = jsonToken.jwt
             
             def containersJson = sh(script: """
@@ -53,7 +46,8 @@ pipeline {
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
-            def containers = convertLazyMapToHashMap(new groovy.json.JsonSlurper().parseText(containersJson))
+            def containers = new groovy.json.JsonSlurper().parseText(containersJson) as HashMap
+            echo containers.toString() // add this line to inspect the structure of containers
 
             def container = containers.find { it.Image == imageName }
             container_id = container?.Id
@@ -80,7 +74,7 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ { "HostPort": "${CONTAINER_PORT}" } ] } } }'
             """, returnStdout: true).trim()
-            def createContainer = convertLazyMapToHashMap(new groovy.json.JsonSlurper().parseText(createContainerJson))
+            def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson) as HashMap
             container_id = createContainer.Id
 
             sh """
@@ -96,21 +90,25 @@ pipeline {
     stage('Check Service Health') {
       steps {
         script {
-          sleep 60
+          // Wait for a while before checking the service
+          sleep 60  // adjust this to match your startup time
 
+          // Call Docker API to get the service info
           def serviceInfo = sh(script: """
             curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/json \
               -H 'accept: application/json' \
               -H 'Authorization: Bearer ${bearerToken}'
           """, returnStdout: true).trim()
 
-          def jsonServiceInfo = convertLazyMapToHashMap(new groovy.json.JsonSlurper().parseText(serviceInfo))
+          def jsonServiceInfo = new groovy.json.JsonSlurper().parseText(serviceInfo) as HashMap
 
+          // Check the service state
           if (jsonServiceInfo.State.Status != "running") {
             error("Service is not healthy")
           }
         }
       }
     }
+
   }
 }
