@@ -14,6 +14,7 @@ pipeline {
     CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
     bearerToken = ""
     container_id = ""
+    NETWORK_NAME = "kafka_network"
   }
 
   stages {
@@ -72,8 +73,51 @@ pipeline {
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
-                -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ {} ] } } }'
-            """, returnStdout: true).trim()
+                -d '{
+                      "TaskTemplate": {
+                        "ContainerSpec": {
+                          "Image": "${imageName}",
+                          "Mounts": [
+                            {
+                              "Source": "web-data",
+                              "Target": "/usr/src/app/data",
+                              "ReadOnly": false,
+                              "Type": "volume"
+                            }
+                          ],
+                          "Labels": {
+                            "com.example.something": "Note-to-self: fill this in"
+                          }
+                        },
+                        "Networks": [
+                          {
+                            "Target": "${NETWORK_NAME}"
+                          }
+                        ],
+                        "RestartPolicy": {
+                          "Condition": "on-failure",
+                          "Delay": 10000000000,
+                          "MaxAttempts": 10
+                        }
+                      },
+                      "Mode": {
+                        "Replicated": {
+                          "Replicas": 1
+                        }
+                      },
+                      "EndpointSpec": {
+                        "Ports": [
+                          {
+                            "Protocol": "tcp",
+                            "TargetPort": ${CONTAINER_PORT}
+                          }
+                        ]
+                      }
+                    }'
+            """
+            
+            
+            , returnStdout: true).trim()
             def createContainer = new groovy.json.JsonSlurperClassic().parseText(createContainerJson) 
             container_id = createContainer.Id
 
