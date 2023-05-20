@@ -46,7 +46,7 @@ pipeline {
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
-            def containers = new groovy.json.JsonSlurper().parseText(containersJson) 
+            def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson) 
 //             echo containers.toString() // add this line to inspect the structure of containers
 
             def container = containers.find { it.Image == imageName }
@@ -74,7 +74,7 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{ "Image": "${imageName}", "name": "${SERVICE_NAME}", "ExposedPorts": { "${CONTAINER_PORT}/tcp": {} }, "HostConfig": { "PortBindings": { "${CONTAINER_PORT}/tcp": [ {} ] } } }'
             """, returnStdout: true).trim()
-            def createContainer = new groovy.json.JsonSlurper().parseText(createContainerJson) 
+            def createContainer = new groovy.json.JsonSlurperClassic().parseText(createContainerJson) 
             container_id = createContainer.Id
 
             sh """
@@ -100,7 +100,7 @@ pipeline {
               -H 'Authorization: Bearer ${bearerToken}'
           """, returnStdout: true).trim()
 
-          def jsonServiceInfo = new groovy.json.JsonSlurper().parseText(serviceInfo) 
+          def jsonServiceInfo = new groovy.json.JsonSlurperClassic().parseText(serviceInfo) 
 
           // Check the service state
           if (jsonServiceInfo.State.Status != "running") {
