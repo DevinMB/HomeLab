@@ -14,7 +14,7 @@ pipeline {
     CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
     bearerToken = ""
     container_id = ""
-    NETWORK_NAME = "kafka_network"
+    NETWORK_NAME = "kafka_flappysnetwork"
   }
 
   stages {
