@@ -76,6 +76,7 @@ pipeline {
                 -d '{
                       "TaskTemplate": {
                         "ContainerSpec": {
+                          "Name" : "${params.appname}",
                           "Image": "${imageName}",
                           "Mounts": [
                             {
@@ -115,11 +116,18 @@ pipeline {
                       }
                     }'
             """
-            
+            def containersJson = sh(script: """
+              curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json \
+                -H 'accept: application/json' \
+                -H 'Authorization: Bearer ${bearerToken}'
+            """, returnStdout: true).trim()
+            def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson) 
+//             echo containers.toString() // add this line to inspect the structure of containers
+
+            def container = containers.find { it.Image == imageName }
+            container_id = container?.Id
             
             , returnStdout: true).trim()
-            def createContainer = new groovy.json.JsonSlurperClassic().parseText(createContainerJson) 
-            container_id = createContainer.Id
 
             sh """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
