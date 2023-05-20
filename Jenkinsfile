@@ -47,7 +47,7 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
             def containers = new groovy.json.JsonSlurper().parseText(containersJson) 
-            echo containers.toString() // add this line to inspect the structure of containers
+//             echo containers.toString() // add this line to inspect the structure of containers
 
             def container = containers.find { it.Image == imageName }
             container_id = container?.Id
@@ -67,7 +67,7 @@ pipeline {
     stage('Create and Start New Container') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          
             def createContainerJson = sh(script: """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
@@ -82,7 +82,7 @@ pipeline {
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """
-          }
+          
         }
       }
     }
