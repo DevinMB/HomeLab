@@ -47,6 +47,8 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
             def containers = new groovy.json.JsonSlurper().parseText(containersJson)
+            echo containers.toString() // add this line to inspect the structure of containers
+
             def container = containers.find { it.Image == imageName }
             container_id = container?.Id
 
