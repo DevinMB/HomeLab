@@ -73,6 +73,7 @@ pipeline {
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
+                -H 'Content-Type: application/json' \
                 -d '{
                       "TaskTemplate": {
                         "ContainerSpec": {
