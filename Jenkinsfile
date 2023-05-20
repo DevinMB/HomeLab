@@ -119,7 +119,7 @@ pipeline {
             , returnStdout: true).trim()
 
             def createContainer = new groovy.json.JsonSlurperClassic().parseText(createContainerJson) 
-            println createContainerJson.ID + "Created ID!!!"
+            println createContainer
             container_id = createContainer.Id
 
             sh """
