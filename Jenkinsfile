@@ -70,7 +70,7 @@ pipeline {
         script {
           
             def createContainerJson = sh(script: """
-              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
+              curl -X POST http://192.168.1.59:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -d '{
