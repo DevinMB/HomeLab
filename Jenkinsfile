@@ -130,7 +130,7 @@ pipeline {
             container_id = container?.Id
 
             sh """
-              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
+              curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${imageName}/start \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """
