@@ -49,7 +49,7 @@ pipeline {
             """, returnStdout: true).trim()
             def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson) 
 //             echo containers.toString() // add this line to inspect the structure of containers
-            println it.Image
+            println containers
             def container = containers.find { it.Image == imageName }
             container_id = container?.Id
 
