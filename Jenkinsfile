@@ -112,6 +112,7 @@ pipeline {
           """, returnStdout: true).trim()
 
           def jsonServiceInfo = readJSON text: serviceInfo
+          println "Service info: ${jsonServiceInfo}"
 
           // Check the service state
           if (jsonServiceInfo.UpdateStatus.State != "completed") {
