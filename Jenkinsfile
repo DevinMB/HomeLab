@@ -33,7 +33,7 @@ pipeline {
     stage('Retrieve Container ID and Delete Old Container') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
+          withCredentials([bearerToken(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
 //             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
 //             def jsonToken = readJSON text: token
 //             bearerToken = jsonToken.jwt
@@ -62,7 +62,7 @@ pipeline {
     stage('Create and Start New Container') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
+          withCredentials([bearerToken(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
             def createContainerJson = sh(script: """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
@@ -112,7 +112,7 @@ pipeline {
     stage('Check Service Health') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
+          withCredentials([bearerToken(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
           // Wait for a while before checking the service
           sleep 60  // adjust this to match your startup time
 
