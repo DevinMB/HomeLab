@@ -11,7 +11,7 @@ pipeline {
     NETWORK_NAME = "kafka_flappysnetwork"
     CONTAINER_PORT = "8080"
     registry = "192.168.1.59:5000/" + APP_NAME
-    imageName = "192.168.1.59:5000/" + $APP_NAME + ":${BUILD_NUMBER}"
+    imageName = "192.168.1.59:5000/" + APP_NAME + ":${BUILD_NUMBER}"
     dockerImage = ""   
     bearerToken = ""
     container_id = ""
