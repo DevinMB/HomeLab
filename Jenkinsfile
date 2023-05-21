@@ -75,9 +75,9 @@ pipeline {
                 -H 'Authorization: Bearer ${bearerToken}' \
                 -H 'Content-Type: application/json' \
                 -d '{
-                      "Name": "${params.appname}",
+                      "Name": "${APP_NAME}",
                       "Image": "${imageName}",
-                      "Labels": {"AppName": "${params.appname}"},
+                      "Labels": {"AppName": "${APP_NAME}"},
                       "HostConfig": {
                         "Mounts": [
                           {
