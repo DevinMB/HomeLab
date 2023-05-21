@@ -2,19 +2,19 @@ pipeline {
   agent {
     label 'docker-build-agent'
   }
-  parameters {
-    string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'rasberry pi input to raw topic')
-  }
+  // parameters {
+  //   string(name: 'appname', defaultValue: 'rpi-raw-input', description: 'rasberry pi input to raw topic')
+  // }
   environment {
-    registry = "192.168.1.59:5000/${params.appname}"
-    dockerImage = ''
+    APP_NAME = "data-streams-rpi-input-raw"
+    CREDENTIALS_ID = "portainer-creds"
+    NETWORK_NAME = "kafka_flappysnetwork"
+    CONTAINER_PORT = "8080"
+    registry = "192.168.1.59:5000/${APP_NAME}"
     imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
-    APP_NAME = "${params.appname}"
-    CONTAINER_PORT = '8080'
-    CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
+    dockerImage = ""   
     bearerToken = ""
     container_id = ""
-    NETWORK_NAME = "kafka_flappysnetwork"
   }
 
   stages {
