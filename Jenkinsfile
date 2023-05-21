@@ -21,7 +21,6 @@ pipeline {
         }
       }
     }
-
     stage('Push Image') {
       steps {
         script {
@@ -29,15 +28,10 @@ pipeline {
         }
       }
     }
-
     stage('Retrieve Container ID and Delete Old Container') {
       steps {
         script {
           withCredentials([string(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
-//             def token = sh(script: "curl -s -X POST http://portainer:9000/api/auth -H 'accept: application/json' -H 'Content-Type: application/json' -d '{\"username\": \"${USERNAME}\", \"password\": \"${PASSWORD}\"}'", returnStdout: true).trim()
-//             def jsonToken = readJSON text: token
-//             bearerToken = jsonToken.jwt
-            
             def containersJson = sh(script: """
               curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json?all=true \
                 -H 'accept: application/json' \
@@ -58,7 +52,6 @@ pipeline {
         }
       }
     }
-
     stage('Create and Start New Container') {
       steps {
         script {
@@ -108,15 +101,13 @@ pipeline {
         }
       }
     }
-
     stage('Check Service Health') {
       steps {
         script {
           withCredentials([string(credentialsId: CREDENTIALS_ID, variable: 'BEARER_TOKEN')]) {
           // Wait for a while before checking the service
-          sleep 60  // adjust this to match your startup time
+          sleep 60
 
-          // Call Docker API to get the service info
           def serviceInfo = sh(script: """
             curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/json \
               -H 'accept: application/json' \
@@ -133,7 +124,6 @@ pipeline {
         }
       }
     }
-
   }
 }
 

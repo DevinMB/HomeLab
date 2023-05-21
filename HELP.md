@@ -1,6 +1,7 @@
 # Getting Started
 
 ### Reference Documentation
+
 For further reference, please consider the following sections:
 
 * [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
@@ -11,6 +12,7 @@ For further reference, please consider the following sections:
 * [Spring for Apache Kafka](https://docs.spring.io/spring-boot/docs/3.0.6/reference/htmlsingle/#messaging.kafka)
 
 ### Guides
+
 The following guides illustrate how to use some features concretely:
 
 * [Samples for using Apache Kafka Streams with Spring Cloud stream](https://github.com/spring-cloud/spring-cloud-stream-samples/tree/master/kafka-streams-samples)
