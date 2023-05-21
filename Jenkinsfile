@@ -9,7 +9,7 @@ pipeline {
     CONTAINER_PORT = "8080"
     registry = "192.168.1.59:5000/${APP_NAME}"
     imageName = "192.168.1.59:5000/${APP_NAME}:${BUILD_NUMBER}"
-    dockerImage = ""   
+    dockerImage = ""
     container_id = ""
   }
 
@@ -41,7 +41,7 @@ pipeline {
             def containersJson = sh(script: """
               curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json?all=true \
                 -H 'accept: application/json' \
-                -H 'Authorization: Bearer ${BEARER_TOKEN}'
+                -H 'X-API-Key: ${BEARER_TOKEN}'
             """, returnStdout: true).trim()
             def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson)
             def container = containers.find { it.Labels.AppName == APP_NAME }
@@ -51,7 +51,7 @@ pipeline {
               sh """
                 curl -X DELETE http://portainer:9000/api/endpoints/2/docker/containers/${container_id} \
                   -H 'accept: application/json' \
-                  -H 'Authorization: Bearer ${BEARER_TOKEN}'
+                  -H 'X-API-Key: ${BEARER_TOKEN}'
               """
             }
           }
@@ -66,7 +66,7 @@ pipeline {
             def createContainerJson = sh(script: """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/create \
                 -H 'accept: application/json' \
-                -H 'Authorization: Bearer ${BEARER_TOKEN}' \
+                -H 'X-API-Key: ${BEARER_TOKEN}' \
                 -H 'Content-Type: application/json' \
                 -d '{
                       "Name": "${APP_NAME}",
@@ -102,7 +102,7 @@ pipeline {
             sh """
               curl -X POST http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/start \
                 -H 'accept: application/json' \
-                -H 'Authorization: Bearer ${BEARER_TOKEN}'
+                -H 'X-API-Key: ${BEARER_TOKEN}'
             """
           }
         }
@@ -120,7 +120,7 @@ pipeline {
           def serviceInfo = sh(script: """
             curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/${container_id}/json \
               -H 'accept: application/json' \
-              -H 'Authorization: Bearer ${BEARER_TOKEN}'
+              -H 'X-API-Key: ${BEARER_TOKEN}'
           """, returnStdout: true).trim()
 
           def jsonServiceInfo = new groovy.json.JsonSlurperClassic().parseText(serviceInfo) 
