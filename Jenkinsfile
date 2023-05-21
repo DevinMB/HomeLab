@@ -9,7 +9,7 @@ pipeline {
     registry = "192.168.1.59:5000/${params.appname}"
     dockerImage = ''
     imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
-    SERVICE_NAME = "${params.appname}"
+    APP_NAME = "${params.appname}"
     CONTAINER_PORT = '8080'
     CREDENTIALS_ID = 'portainer-creds' // You have to add Portainer credentials to Jenkins
     bearerToken = ""
@@ -43,14 +43,14 @@ pipeline {
             bearerToken = jsonToken.jwt
             
             def containersJson = sh(script: """
-              curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json \
+              curl -s -X GET http://portainer:9000/api/endpoints/2/docker/containers/json?all=true \
                 -H 'accept: application/json' \
                 -H 'Authorization: Bearer ${bearerToken}'
             """, returnStdout: true).trim()
             def containers = new groovy.json.JsonSlurperClassic().parseText(containersJson) 
 //             echo containers.toString() // add this line to inspect the structure of containers
-            println containers
-            def container = containers.find { it.Image == imageName }
+//             println containers
+            def container = containers.find { it.Labels.AppName == APP_NAME }
             container_id = container?.Id
 
             if (container_id) {
@@ -77,6 +77,7 @@ pipeline {
                 -d '{
                       "Name": "${params.appname}",
                       "Image": "${imageName}",
+                      "Labels": {"AppName": "${params.appname}"},
                       "HostConfig": {
                         "Mounts": [
                           {
