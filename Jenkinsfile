@@ -10,8 +10,8 @@ pipeline {
     CREDENTIALS_ID = "portainer-creds"
     NETWORK_NAME = "kafka_flappysnetwork"
     CONTAINER_PORT = "8080"
-    registry = "192.168.1.59:5000/${APP_NAME}"
-    imageName = "192.168.1.59:5000/${params.appname}:${BUILD_NUMBER}"
+    registry = "192.168.1.59:5000/" + APP_NAME
+    imageName = "192.168.1.59:5000/" + $APP_NAME + ":${BUILD_NUMBER}"
     dockerImage = ""   
     bearerToken = ""
     container_id = ""
@@ -21,7 +21,7 @@ pipeline {
     stage('Build Image') {
       steps {
         script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImage = docker.build registry + ":${BUILD_NUMBER}"
         }
       }
     }
